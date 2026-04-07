@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>SWEN TECH — Finance Manager</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SWEN TECH">
+<meta name="theme-color" content="#0a0c10">
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="screen active">
+  <div class="login-wrap">
+    <div class="login-logo">
+      <div class="brand">SWEN TECH</div>
+      <p>Finance Manager</p>
+    </div>
+    <div class="login-card">
+      <div class="tab-switcher">
+        <button class="tab-btn active" onclick="switchLoginTab('admin',this)">🏢 Company</button>
+        <button class="tab-btn" onclick="switchLoginTab('user',this)">👤 User</button>
+      </div>
+      <div id="adminLoginForm">
+        <div class="form-group"><label>Username</label><input type="text" id="adminUser" placeholder="Enter username" autocomplete="off"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="adminPass" placeholder="Enter password"></div>
+        <button class="btn-primary" onclick="loginAdmin()">Login as Admin</button>
+      </div>
+      <div id="userLoginForm" style="display:none">
+        <div class="form-group"><label>User ID</label><input type="text" id="userId" placeholder="Enter user ID" inputmode="numeric"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="userPass" placeholder="Enter password"></div>
+        <button class="btn-primary" onclick="loginUser()">Login</button>
+      </div>
+      <div class="login-error" id="loginErr">❌ Invalid credentials. Please try again.</div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appScreen" class="screen">
+  <div class="topnav">
+    <div class="nav-brand">SWEN TECH</div>
+    <div class="nav-right">
+      <div class="user-pill">
+        <div class="user-avatar" id="navAvatar">A</div>
+        <span id="navName">Admin</span>
+        <span class="role-badge admin" id="navRole">ADMIN</span>
+      </div>
+      <button class="btn-logout" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+      <div class="tabnav" id="adminNav">
+        <div class="tnav-btn active" onclick="showAdminTab('dashboard')"><i data-lucide="layout-dashboard"></i>Dashboard</div>
+        <div class="tnav-btn" onclick="showAdminTab('addProject')"><i data-lucide="plus-circle"></i>Add Project</div>
+        <div class="tnav-btn" onclick="showAdminTab('expenses')"><i data-lucide="receipt"></i>Expenses</div>
+        <div class="tnav-btn" onclick="showAdminTab('statement')"><i data-lucide="file-text"></i>Statement</div>
+        <div class="tnav-btn" onclick="showAdminTab('users')"><i data-lucide="users"></i>Users</div>
+        <div class="tnav-btn" onclick="showAdminTab('audit')"><i data-lucide="shield"></i>Audit Logs</div>
+      </div>
+  <div class="tabnav" id="userTabs" style="display:none">
+    <div class="tnav-btn active" onclick="showUserTab('myDashboard')"><i data-lucide="bar-chart"></i>My Dashboard</div>
+    <div class="tnav-btn" onclick="showUserTab('myProjects')"><i data-lucide="folder"></i>My Projects</div>
+  </div>
+
+  <div class="content">
+
+    <!-- ADMIN DASHBOARD -->
+    <div id="tab-dashboard" class="tab-panel active">
+      <div class="stat-grid" id="adminStats"></div>
+      
+      <div class="charts-row">
+        <div class="chart-box"><div class="chart-title">Monthly Revenue</div><div class="chart-wrap"><canvas id="revenueChart"></canvas></div></div>
+        <div class="chart-box"><div class="chart-title">Expense Breakdown</div><div class="chart-wrap"><canvas id="expenseChart"></canvas></div></div>
+        <div class="chart-box"><div class="chart-title">Team Performance</div><div class="chart-wrap"><canvas id="teamChart"></canvas></div></div>
+      </div>
+
+      <div class="section-head">
+        <div class="section-title">Operational Intelligence</div>
+        <div class="section-actions">
+          <input type="text" id="dashSearch" placeholder="Search projects/clients..." oninput="renderAdminDashboard()" class="dash-search">
+          <button class="btn-pdf" onclick="downloadAdminPDF()">📊 Full Report (PDF)</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-inner">
+          <table id="dashTable">
+            <thead><tr><th>#</th><th>Project</th><th>Amount</th><th>K</th><th>V</th><th>A</th><th>R</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="dashTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADD PROJECT -->
+    <div id="tab-addProject" class="tab-panel">
+      <div class="form-card">
+        <h3>📂 New Project Entry</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Project Name</label><input type="text" id="projName" placeholder="e.g. Website Design"></div>
+          <div class="form-group"><label>Client Name</label><input type="text" id="projClient" placeholder="e.g. Acme Corp"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Total Earnings (₹)</label><input type="number" id="projEarnings" placeholder="0.00" oninput="calcSplit()"></div>
+          <div class="form-group"><label>Due Date</label><input type="date" id="projDueDate"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Project Status</label>
+            <select id="projStatus">
+              <option value="Active">Active</option>
+              <option value="Pending">Pending</option>
+              <option value="Completed">Completed</option>
+              <option value="Paid">Paid</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>GST (18%)</label>
+            <div style="display:flex;align-items:center;gap:10px;height:46px;">
+              <input type="checkbox" id="projGst" onchange="calcSplit()" style="width:20px;height:20px;cursor:pointer;">
+              <span style="font-size:13px;color:var(--text2);">Include GST in total earnings</span>
+            </div>
+          </div>
+        </div>
+        <hr class="form-divider">
+        <div style="margin-bottom:14px;font-size:13px;color:var(--text2);font-weight:600;">💰 Split Amounts (per user)</div>
+        <div class="split-grid">
+          <div class="form-group"><div class="split-user-label"><span class="split-user-dot"></span>Karthikayan</div><input type="number" id="split_k" placeholder="0.00" oninput="calcSplit()"></div>
+          <div class="form-group"><div class="split-user-label"><span class="split-user-dot" style="background:#a78bfa"></span>Vendhan</div><input type="number" id="split_v" placeholder="0.00" oninput="calcSplit()"></div>
+          <div class="form-group"><div class="split-user-label"><span class="split-user-dot" style="background:#f472b6"></span>Abisha</div><input type="number" id="split_a" placeholder="0.00" oninput="calcSplit()"></div>
+          <div class="form-group"><div class="split-user-label"><span class="split-user-dot" style="background:var(--warn)"></span>Rakesh</div><input type="number" id="split_r" placeholder="0.00" oninput="calcSplit()"></div>
+        </div>
+
+        <!-- SUB-PROJECTS in add form -->
+        <hr class="form-divider">
+        <div class="sub-projects-section">
+          <h4>
+            <span>📂 Sub-Projects <span style="font-size:10px;color:var(--text3);text-transform:none;font-weight:400">(optional)</span></span>
+            <button class="btn-add-sub" onclick="addSubRow('newSubList')">+ Add Sub-Project</button>
+          </h4>
+          <div id="newSubList"></div>
+          <div class="charts-row">
+            <div class="chart-box"><div class="chart-title">Monthly Revenue</div><div class="chart-wrap"><canvas id="revenueChart"></canvas></div></div>
+            <div class="chart-box"><div class="chart-title">Expense Breakdown</div><div class="chart-wrap"><canvas id="expenseChart"></canvas></div></div>
+            <div class="chart-box"><div class="chart-title">Team Performance</div><div class="chart-wrap"><canvas id="teamChart"></canvas></div></div>
+          </div>
+        </div>
+
+        <div class="calc-row"><div class="label">Total Splits</div><div class="value" id="totalSplitsDisplay">₹0</div></div>
+        <div class="calc-row warn" id="calcBalRow"><div class="label">Company Balance (this project)</div><div class="value" id="companyBalDisplay">₹0</div></div>
+        <div class="val-warn" id="addValWarn"></div>
+        <button class="btn-save" onclick="saveProject()">💾 Save Project</button>
+      </div>
+    </div>
+
+    <!-- EXPENSES -->
+    <div id="tab-expenses" class="tab-panel">
+      <div class="stat-grid" id="expenseStats"></div>
+      <div class="expense-card">
+        <h3>⚠️ Deduct Company Expense</h3>
+        <div class="expense-row">
+          <div class="form-group"><label>Expense Name</label><input type="text" id="expName" placeholder="e.g. Office Rent"></div>
+          <div class="form-group">
+            <label>Category</label>
+            <select id="expCategory">
+              <option value="General">General</option>
+              <option value="Office">Office</option>
+              <option value="Travel">Travel</option>
+              <option value="Software">Software</option>
+              <option value="Hardware">Hardware</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Amount (₹)</label><input type="number" id="expAmount" placeholder="0.00"></div>
+          <button class="btn-deduct" onclick="addExpense()">− Deduct</button>
+        </div>
+        <div style="margin-top:20px"><div class="divider-label">Expense History</div><div class="expense-log" id="expenseLog"></div></div>
+      </div>
+    </div>
+
+    <!-- USERS MANAGEMENT -->
+    <div id="tab-users" class="tab-panel">
+      <div class="form-card">
+        <h3>👥 User Management</h3>
+        <div class="expense-row" style="grid-template-columns:1fr 1fr 1fr auto; align-items:flex-end; gap:12px;">
+          <div class="form-group"><label>Full Name</label><input type="text" id="newUserName" placeholder="Name"></div>
+          <div class="form-group"><label>User ID (Phone)</label><input type="text" id="newUserId" placeholder="User ID"></div>
+          <div class="form-group"><label>Initial Password</label><input type="password" id="newUserPass" placeholder="Password"></div>
+          <button class="btn-primary" onclick="addNewUser()" style="height:46px;">+ Add User</button>
+        </div>
+        <div style="margin-top:24px;">
+          <div class="divider-label">Active Team Members</div>
+          <div id="userManagementList" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px; margin-top:12px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATEMENT -->
+    <div id="tab-statement" class="tab-panel">
+      <div class="section-head">
+        <div class="section-title">Full Company Statement</div>
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:24px; gap:16px; flex-wrap:wrap">
+            <div style="display:flex; gap:12px; flex:1; min-width:300px">
+              <div class="form-group" style="margin-bottom:0; flex:1">
+                <input type="text" id="stmtSearch" placeholder="🔍 Search Statement..." style="padding:10px 16px; border-radius:12px" oninput="renderStatement()">
+              </div>
+              <div class="form-group" style="margin-bottom:0">
+                <input type="date" id="stmtFromDate" style="padding:6px 10px; font-size:12px" onchange="renderStatement()">
+              </div>
+              <div class="form-group" style="margin-bottom:0">
+                <input type="date" id="stmtToDate" style="padding:6px 10px; font-size:12px" onchange="renderStatement()">
+              </div>
+            </div>
+            <div style="display:flex; gap:8px">
+              <button class="btn-primary" onclick="downloadCSV()" style="padding:10px 16px; font-size:12px; border-radius:10px; background:rgba(16,185,129,.1); border-color:rgba(16,185,129,.2); color:#10b981">
+                <i data-lucide="sheet" style="width:14px; height:14px; margin-right:4px"></i>Export Excel
+              </button>
+              <button class="btn-primary" onclick="window.print()" style="padding:10px 20px; font-size:13px; border-radius:10px">
+                <i data-lucide="printer" style="width:16px; height:16px; margin-right:6px"></i>Print Record
+              </button>
+            </div>
+          </div>
+      </div>
+      <div id="summaryTotals" class="summary-grid"></div>
+      <div class="table-wrap">
+        <div class="table-container"><table id="stmtTable"><thead><tr><th>#</th><th>Project & Sub-projects</th><th>Total Earnings</th><th>K</th><th>V</th><th>A</th><th>R</th><th>Co.Bal</th><th>Date</th></tr></thead><tbody id="statementBody"></tbody></table></div>
+    </div>
+
+    <!-- ══ AUDIT LOGS TAB ══ -->
+    <div id="tab-audit" class="tab-panel">
+      <div class="section-head">
+        <div class="section-title">Security & Audit logs</div>
+        <div class="section-desc">Track all operational changes and data mutations.</div>
+      </div>
+      <div id="auditLogList" class="audit-list"></div>
+    </div>
+      </div>
+    </div>
+
+    <!-- USER DASHBOARD -->
+    <div id="tab-myDashboard" class="tab-panel">
+      <div class="user-hero">
+        <div class="user-avatar-big" id="userAvatarBig">K</div>
+        <div class="user-info"><h2 id="userHeroName">Karthikayan</h2><p>User ID: <span id="userHeroId">9840713587</span></p></div>
+      </div>
+      <div class="stat-grid" id="userStats"></div>
+    </div>
+
+    <!-- USER PROJECTS -->
+    <div id="tab-myProjects" class="tab-panel">
+      <div class="section-head">
+        <div class="section-title">My Project Earnings</div>
+        <button class="btn-pdf" onclick="downloadUserPDF()">⬇ My Statement</button>
+      </div>
+      <div class="project-list" id="userProjectList"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay hidden" id="editModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2>✏️ Edit Project</h2>
+      <button class="modal-close" onclick="closeEditModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editProjId">
+      <div class="form-row">
+        <div class="form-group"><label>Project Name</label><input type="text" id="editProjName" placeholder="Project name"></div>
+        <div class="form-group"><label>Client Name</label><input type="text" id="editProjClient" placeholder="Client name"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Total Earnings (₹)</label><input type="number" id="editProjEarnings" placeholder="0.00" oninput="calcEditSplit()"></div>
+        <div class="form-group"><label>Due Date</label><input type="date" id="editProjDueDate"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Project Status</label>
+          <select id="editProjStatus">
+            <option value="Active">Active</option>
+            <option value="Pending">Pending</option>
+            <option value="Completed">Completed</option>
+            <option value="Paid">Paid</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>GST (18%)</label>
+          <div style="display:flex;align-items:center;gap:10px;height:46px;">
+            <input type="checkbox" id="editProjGst" onchange="calcEditSplit()" style="width:20px;height:20px;cursor:pointer;">
+            <span style="font-size:13px;color:var(--text2);">Include GST in total earnings</span>
+          </div>
+        </div>
+      </div>
+      <hr class="form-divider">
+      <div style="margin-bottom:14px;font-size:13px;color:var(--text2);font-weight:600;">💰 Split Amounts</div>
+      <div class="split-grid">
+        <div class="form-group"><div class="split-user-label"><span class="split-user-dot"></span>Karthikayan</div><input type="number" id="edit_k" placeholder="0.00" oninput="calcEditSplit()"></div>
+        <div class="form-group"><div class="split-user-label"><span class="split-user-dot" style="background:#a78bfa"></span>Vendhan</div><input type="number" id="edit_v" placeholder="0.00" oninput="calcEditSplit()"></div>
+        <div class="form-group"><div class="split-user-label"><span class="split-user-dot" style="background:#f472b6"></span>Abisha</div><input type="number" id="edit_a" placeholder="0.00" oninput="calcEditSplit()"></div>
+        <div class="form-group"><div class="split-user-label"><span class="split-user-dot" style="background:var(--warn)"></span>Rakesh</div><input type="number" id="edit_r" placeholder="0.00" oninput="calcEditSplit()"></div>
+      </div>
+
+      <!-- SUB-PROJECTS in edit -->
+      <hr class="form-divider">
+      <div class="sub-projects-section">
+        <h4>
+          <span>📂 Sub-Projects</span>
+          <button class="btn-add-sub" onclick="addSubRow('editSubList')">+ Add Sub-Project</button>
+        </h4>
+        <div id="editSubList"></div>
+      </div>
+
+      <div class="calc-row"><div class="label">Total Splits</div><div class="value" id="editTotalSplitsDisplay">₹0</div></div>
+      <div class="calc-row warn" id="editCalcBalRow"><div class="label">Company Balance (this project)</div><div class="value" id="editCompanyBalDisplay">₹0</div></div>
+      <div class="val-warn" id="editValWarn"></div>
+      <button class="btn-save" onclick="saveEditProject()">💾 Update Project</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="script.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('SWEN TECH PWA: Service Worker Active'))
+      .catch(err => console.log('SWEN TECH PWA: Service Worker Error', err));
+  });
+}
+</script>
+</body>
+</html>

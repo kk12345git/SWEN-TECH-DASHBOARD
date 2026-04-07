@@ -1,0 +1,20 @@
+{
+  "name": "SWEN TECH Finance Manager",
+  "short_name": "SWEN TECH",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay"],
+  "background_color": "#0a0c10",
+  "theme_color": "#0a0c10",
+  "icons": [
+    {
+      "src": "swentech_app_icon_1775583706295.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "description": "Enterprise-grade finance and project management for SWEN TECH.",
+  "orientation": "any",
+  "categories": ["finance", "business", "productivity"]
+}
