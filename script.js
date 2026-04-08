@@ -1,13 +1,14 @@
 function getData(){
   const r=localStorage.getItem('swentech_v2');
   let d=r?JSON.parse(r):{projects:[],expenses:[],users:[],auditLogs:[]};
-  if(!d.users||d.users.length===0){
+  if(!d.users || d.users.length === 0 || d.credVersion !== 3){
     d.users=[
-      {name:'Karthikayan',id:'9840713587',pass:'9840@2006',key:'k'},
-      {name:'Vendhan',id:'9003497233',pass:'9003@2006',key:'v'},
-      {name:'Abisha',id:'9025746604',pass:'9025@2006',key:'a'},
-      {name:'Rakesh',id:'7871398619',pass:'7871@2007',key:'r'}
+      {name:'Karthigeyan B.S', id:'9840713587', pass:'9840@2006', key:'k'},
+      {name:'Vendhan c', id:'9003497233', pass:'9003@2006', key:'v'},
+      {name:'Abisha', id:'9025746604', pass:'9025@2006', key:'a'},
+      {name:'Rakesh', id:'7871398619', pass:'7871@2008', key:'r'}
     ];
+    d.credVersion = 3;
     saveData(d);
   }
   if(!d.auditLogs) d.auditLogs=[];
@@ -194,7 +195,7 @@ function renderCharts(data){
     const t=getTotals(data);
     new Chart(ctxTeam,{
       type:'bar',
-      data:{labels:['K','V','A','R'],datasets:[{label:'Revenue Split',data:[t.totalK,t.totalV,t.totalA,t.totalR],backgroundColor:['#00d4ff','#7c3aed','#10b981','#f59e0b']}]},
+      data:{labels:['Karthigeyan','Vendhan','Abisha','Rakesh'],datasets:[{label:'Revenue Split',data:[t.totalK,t.totalV,t.totalA,t.totalR],backgroundColor:['#00d4ff','#7c3aed','#10b981','#f59e0b']}]},
       options:{responsive:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{display:false},y:{ticks:{color:'#8896b3'}}}}
     });
   }
@@ -361,7 +362,7 @@ function addSubRow(listId){
       <button class="btn-del-sub" onclick="document.getElementById('${id}').remove();recalcAll()">✕</button>
     </div>
     <div style="width:100%;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">
-      <div class="form-group" style="margin-bottom:0"><div class="split-user-label" style="font-size:10px"><span class="split-user-dot"></span>Karthikayan</div><input type="number" placeholder="0" class="sub-k" oninput="recalcFromParent(this)"></div>
+      <div class="form-group" style="margin-bottom:0"><div class="split-user-label" style="font-size:10px"><span class="split-user-dot"></span>Karthigeyan</div><input type="number" placeholder="0" class="sub-k" oninput="recalcFromParent(this)"></div>
       <div class="form-group" style="margin-bottom:0"><div class="split-user-label" style="font-size:10px"><span class="split-user-dot" style="background:#a78bfa"></span>Vendhan</div><input type="number" placeholder="0" class="sub-v" oninput="recalcFromParent(this)"></div>
       <div class="form-group" style="margin-bottom:0"><div class="split-user-label" style="font-size:10px"><span class="split-user-dot" style="background:#f472b6"></span>Abisha</div><input type="number" placeholder="0" class="sub-a" oninput="recalcFromParent(this)"></div>
       <div class="form-group" style="margin-bottom:0"><div class="split-user-label" style="font-size:10px"><span class="split-user-dot" style="background:var(--warn)"></span>Rakesh</div><input type="number" placeholder="0" class="sub-r" oninput="recalcFromParent(this)"></div>
@@ -406,7 +407,7 @@ function loadSubProjects(listId,subs){
         <button class="btn-del-sub" onclick="document.getElementById('${id}').remove();recalcAll()">✕</button>
       </div>
       <div style="width:100%;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">
-        <div class="form-group" style="margin-bottom:0"><div class="split-user-label" style="font-size:10px"><span class="split-user-dot"></span>Karthikayan</div><input type="number" value="${s.splits?.k||0}" placeholder="0" class="sub-k" oninput="recalcFromParent(this)"></div>
+        <div class="form-group" style="margin-bottom:0"><div class="split-user-label" style="font-size:10px"><span class="split-user-dot"></span>Karthigeyan</div><input type="number" value="${s.splits?.k||0}" placeholder="0" class="sub-k" oninput="recalcFromParent(this)"></div>
         <div class="form-group" style="margin-bottom:0"><div class="split-user-label" style="font-size:10px"><span class="split-user-dot" style="background:#a78bfa"></span>Vendhan</div><input type="number" value="${s.splits?.v||0}" placeholder="0" class="sub-v" oninput="recalcFromParent(this)"></div>
         <div class="form-group" style="margin-bottom:0"><div class="split-user-label" style="font-size:10px"><span class="split-user-dot" style="background:#f472b6"></span>Abisha</div><input type="number" value="${s.splits?.a||0}" placeholder="0" class="sub-a" oninput="recalcFromParent(this)"></div>
         <div class="form-group" style="margin-bottom:0"><div class="split-user-label" style="font-size:10px"><span class="split-user-dot" style="background:var(--warn)"></span>Rakesh</div><input type="number" value="${s.splits?.r||0}" placeholder="0" class="sub-r" oninput="recalcFromParent(this)"></div>
